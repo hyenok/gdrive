@@ -7,15 +7,14 @@ from apiclient import http
 from pathlib import Path
 
 class gdrive:
-
     def __init__(self, _drive=None):
         self.drive = self.connect_gdrive() if _drive is None else _drive
         self.root_dir_id = 'root'
         self.cur_dir_id = 'root'
         self.recent_result_dict = None
 
-        # Todo: print intermediate results
-        self.print_result = False
+        self.folder_query = "'%s' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false"
+        self.file_query = "'%s' in parents and mimeType!='application/vnd.google-apps.folder' and trashed=false"
         
 
     @staticmethod
@@ -65,7 +64,6 @@ class gdrive:
 
             title_list = [i['title'] for i in ls_result['folder_list']]
             try:
-
                 index_found = title_list.index(p)
             except:
                 print('%s cannot found in :' %p)
@@ -79,8 +77,10 @@ class gdrive:
     def ls(self, dir_id=None, print_result=True):
         dir_id = self.cur_dir_id if dir_id is None else dir_id
         
-        folder_list = self.drive.ListFile({'q': "'%s' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false"%dir_id}).GetList()
-        file_list = self.drive.ListFile({'q': "'%s' in parents and mimeType!='application/vnd.google-apps.folder' and trashed=false"%dir_id}).GetList()
+        folder_list = self.drive.ListFile(
+            {'q': self.folder_query %dir_id}).GetList()
+        file_list = self.drive.ListFile(
+            {'q': self.file_query %dir_id}).GetList()
         
         if print_result:
             print('#folders#')
